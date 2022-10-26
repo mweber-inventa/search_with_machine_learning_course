@@ -24,10 +24,11 @@ def create_rescore_ltr_query(user_query: str, query_obj, click_prior_query: str,
                     "active_features": active_features
                 }
             },
+            "query_weight": main_query_weight,
             "rescore_query_weight": rescore_query_weight # Magic number, but let's say LTR matches are 2x baseline matches
         }
     }
-    print("IMPLEMENT ME: create_rescore_ltr_query")
+    #print("IMPLEMENT ME: create_rescore_ltr_query")
     if active_features is not None and len(active_features) > 0:
         query_obj["rescore"]["query"]["rescore_query"]["sltr"]["active_features"] =  active_features
 
