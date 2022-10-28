@@ -250,6 +250,13 @@ class DataPrepper:
         feature_results["query_id"] = []
         feature_results["sku"] = []
         feature_results["name_match"] = []
+        feature_results["match_phrase"] = []
+        feature_results["customer_review_average"] = []
+        feature_results["customer_review_count"] = []
+        feature_results["artist_name_match_phrase"] = []
+        feature_results["short_description_match_phrase"] = []
+        feature_results["long_description_match_phrase"] = []
+        feature_results["sales_rank_short_term"] = []
 
         if response and len(response['hits']) > 0:
             #print(response)
@@ -257,44 +264,45 @@ class DataPrepper:
                 
                 if len(hit['fields']['_ltrlog'][0]['log_entry'])>0:
 
+                    tmp_hit_features = {}
+
                     for feature in hit['fields']['_ltrlog'][0]['log_entry']:
                         if 'value' in feature:
-                            feature_results[feature['name']].append(feature['value'])
-                            
-                        #if feature['name'] == 'name_match' and 'value' in feature:
-                        #    feature_results['name_match'].append(feature['value'])
-                        #elif feature['name'] == 'match_phrase' and 'value' in feature:
-                        #    feature_results['match_phrase'].append(feature['value'])
-
-                            feature_results["doc_id"].append(int(hit['_id']))
-                            feature_results["query_id"].append(int(query_id))
-                            feature_results["sku"].append(int(hit['_source']['sku'][0]))
+                            tmp_hit_features[feature['name']] = feature['value']
                         else:
-                            no_results[str(query_id)] = hit['_id']
+                            tmp_hit_features[feature['name']] = 0
 
-        #print('n is {}'.format(n))
-        #print('i is {}'.format(i))
+
+                    if (
+                        #(('name_match' in tmp_hit_features) 
+                        #    or ('match_phrase' in tmp_hit_features)
+                        #    or ('artist_name_match_phrase' in tmp_hit_features)
+                        #    or ('short_description_match_phrase' in tmp_hit_features)
+                        #    or ('long_description_match_phrase' in tmp_hit_features))
+                        ('customer_review_average' in tmp_hit_features)
+                        and ('customer_review_count' in tmp_hit_features)
+                        and ('sales_rank_short_term') in tmp_hit_features):
+                        
+                        feature_results["name_match"].append(tmp_hit_features['name_match'])
+                        feature_results["match_phrase"].append(tmp_hit_features['match_phrase'])
+                        feature_results["customer_review_average"].append(tmp_hit_features['customer_review_average'])
+                        feature_results["customer_review_count"].append(tmp_hit_features['customer_review_count'])
+                        feature_results["artist_name_match_phrase"].append(tmp_hit_features['artist_name_match_phrase'])
+                        feature_results["short_description_match_phrase"].append(tmp_hit_features['short_description_match_phrase'])
+                        feature_results["long_description_match_phrase"].append(tmp_hit_features['long_description_match_phrase'])
+                        feature_results["sales_rank_short_term"].append(tmp_hit_features['sales_rank_short_term'])
+                        
+                        feature_results["doc_id"].append(int(hit['_id']))
+                        feature_results["query_id"].append(int(query_id))
+                        feature_results["sku"].append(int(hit['_source']['sku'][0]))
+
+                    else:
+
+                        no_results[str(query_id)] = hit['_id']
+
 
         frame = pd.DataFrame(feature_results)
-
-        #for doc in query_doc_ids:
-        #    if doc not in frame.doc_id.values:
-        #        tmp_dict = {}
-        #        tmp_dict['query_id'] = query_id
-        #        tmp_dict['doc_id'] = doc
-        #        no_results.append(tmp_dict)
-
-                #for feature in hit['fields']['_ltrlog'][0]['log_entry']:
-                #    feature_results[feature['name']] =  feature['value']
-        
-        # rng = np.random.default_rng(12345)
-        # for doc_id in query_doc_ids:
-        #     feature_results["doc_id"].append(doc_id)  # capture the doc id so we can join later
-        #     feature_results["query_id"].append(query_id)
-        #     feature_results["sku"].append(doc_id)  
-        #     feature_results["name_match"].append(rng.random())
-
-        
+        #print(frame.columns)
         return frame.astype({'doc_id': 'int64', 'query_id': 'int64', 'sku': 'int64'})
         # IMPLEMENT_END
 
