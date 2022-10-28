@@ -12,6 +12,20 @@
             "name": "{{keywords}}"
           }
         }
+      },
+      {
+        "name": "match_phrase",
+        "params": [
+          "keywords"
+        ],
+        "template_language": "mustache",
+        "template": {
+          "match_phrase": {
+            "message": "{{keywords}}",
+            "analyzer": "english",
+            "slop": 6
+          }
+        }
       }
     ]
   }

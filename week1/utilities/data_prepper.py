@@ -251,9 +251,6 @@ class DataPrepper:
         feature_results["sku"] = []
         feature_results["name_match"] = []
 
-        n = 0
-        i = 0
-
         if response and len(response['hits']) > 0:
             #print(response)
             for hit in response['hits']['hits']:
@@ -261,15 +258,18 @@ class DataPrepper:
                 if len(hit['fields']['_ltrlog'][0]['log_entry'])>0:
 
                     for feature in hit['fields']['_ltrlog'][0]['log_entry']:
-                        if feature['name'] == 'name_match' and 'value' in feature:
-                            #n = n + 1
-                            feature_results['name_match'].append(feature['value'])
+                        if 'value' in feature:
+                            feature_results[feature['name']].append(feature['value'])
+                            
+                        #if feature['name'] == 'name_match' and 'value' in feature:
+                        #    feature_results['name_match'].append(feature['value'])
+                        #elif feature['name'] == 'match_phrase' and 'value' in feature:
+                        #    feature_results['match_phrase'].append(feature['value'])
 
                             feature_results["doc_id"].append(int(hit['_id']))
                             feature_results["query_id"].append(int(query_id))
                             feature_results["sku"].append(int(hit['_source']['sku'][0]))
                         else:
-                            #i = i + 1
                             no_results[str(query_id)] = hit['_id']
 
         #print('n is {}'.format(n))
