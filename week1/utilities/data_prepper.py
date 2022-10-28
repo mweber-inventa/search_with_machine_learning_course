@@ -236,10 +236,11 @@ class DataPrepper:
                                                 size=len(query_doc_ids), terms_field=terms_field)
         ##### Step Extract LTR Logged Features:
         # IMPLEMENT_START --
+        #print(log_query)
         response = self.opensearch.search(body=log_query, index=self.index_name)
         #print(response)
         
-        print("IMPLEMENT ME: __log_ltr_query_features: Extract log features out of the LTR:EXT response and place in a data frame")
+        # print("IMPLEMENT ME: __log_ltr_query_features: Extract log features out of the LTR:EXT response and place in a data frame")
         # Loop over the hits structure returned by running `log_query` and then extract out the features from the response per query_id and doc id.  
         # Also capture and return all query/doc pairs that didn't return features
         # Your structure should look like the data frame below
@@ -250,26 +251,38 @@ class DataPrepper:
         feature_results["sku"] = []
         feature_results["name_match"] = []
 
+        n = 0
+        i = 0
+
         if response and len(response['hits']) > 0:
-            
+            #print(response)
             for hit in response['hits']['hits']:
+                
+                if len(hit['fields']['_ltrlog'][0]['log_entry'])>0:
 
-                feature_results["doc_id"].append(hit['_source']['id'])
-                feature_results["query_id"].append(query_id)
-                feature_results["sku"].append(hit['_source']['sku'])
+                    for feature in hit['fields']['_ltrlog'][0]['log_entry']:
+                        if feature['name'] == 'name_match' and 'value' in feature:
+                            #n = n + 1
+                            feature_results['name_match'].append(feature['value'])
 
-                for feature in hit['fields']['_ltrlog'][0]['log_entry']:
-                    if feature['name'] == 'name_match':
-                        feature_results['name_match'].append(feature['value'])
-        
+                            feature_results["doc_id"].append(int(hit['_id']))
+                            feature_results["query_id"].append(int(query_id))
+                            feature_results["sku"].append(int(hit['_source']['sku'][0]))
+                        else:
+                            #i = i + 1
+                            no_results[str(query_id)] = hit['_id']
+
+        #print('n is {}'.format(n))
+        #print('i is {}'.format(i))
+
         frame = pd.DataFrame(feature_results)
 
-        for doc in query_doc_ids:
-            if doc not in frame.doc_id.values:
-                tmp_dict = {}
-                tmp_dict['query_id'] = query_id
-                tmp_dict['doc_id'] = doc
-                no_results.append(tmp_dict)
+        #for doc in query_doc_ids:
+        #    if doc not in frame.doc_id.values:
+        #        tmp_dict = {}
+        #        tmp_dict['query_id'] = query_id
+        #        tmp_dict['doc_id'] = doc
+        #        no_results.append(tmp_dict)
 
                 #for feature in hit['fields']['_ltrlog'][0]['log_entry']:
                 #    feature_results[feature['name']] =  feature['value']

@@ -82,7 +82,7 @@ def create_feature_log_query(query, doc_ids, click_prior_query, featureset_name,
                 "filter": [  # use a filter so that we don't actually score anything
                     {
                         "terms": {
-                            terms_field: [doc_ids]
+                            terms_field: doc_ids
                         }
                     },
                     {  # use the LTR query bring in the LTR feature set
@@ -108,7 +108,7 @@ def create_feature_log_query(query, doc_ids, click_prior_query, featureset_name,
             }
         }
     }
-    return None
+    return query_obj
 
 
 # Item is a Pandas namedtuple
