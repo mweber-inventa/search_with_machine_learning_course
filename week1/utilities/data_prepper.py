@@ -273,13 +273,7 @@ class DataPrepper:
                             tmp_hit_features[feature['name']] = 0
 
 
-                    if (
-                        #(('name_match' in tmp_hit_features) 
-                        #    or ('match_phrase' in tmp_hit_features)
-                        #    or ('artist_name_match_phrase' in tmp_hit_features)
-                        #    or ('short_description_match_phrase' in tmp_hit_features)
-                        #    or ('long_description_match_phrase' in tmp_hit_features))
-                        ('customer_review_average' in tmp_hit_features)
+                    if (('customer_review_average' in tmp_hit_features)
                         and ('customer_review_count' in tmp_hit_features)
                         and ('sales_rank_short_term') in tmp_hit_features):
                         
@@ -299,7 +293,6 @@ class DataPrepper:
                     else:
 
                         no_results[str(query_id)] = hit['_id']
-
 
         frame = pd.DataFrame(feature_results)
         #print(frame.columns)
