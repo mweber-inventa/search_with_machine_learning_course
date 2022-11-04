@@ -26,17 +26,44 @@ tail -10000 /workspace/datasets/fasttext/normalized_labeled_products.txt > /work
 In ipython:
 
 import pandas as pd
+import numpy as np
 
 item_count_threshold = 500
 
 df = pd.read_fwf('/workspace/datasets/fasttext/shuffled_labeled_products.txt', header=None, names=['text'])
 
 def expand_labels_and_text(df, col='text'):
-    return df[col].split(' ')[0], ' '.join(df[col].split(' ')[1:])
+    return df[col].split(' ')[0].strip(), ' '.join(df[col].split(' ')[1:])
 
 df[['label', 'description']] = df.apply(expand_labels_and_text, axis=1, result_type='expand')
 df['item_count'] = df.groupby('label').transform('count')['description']
 
 df_output = df[df['item_count']>=item_count_threshold]['text']
-df_output.to_csv('/workspace/datasets/fasttext/pruned_labeled_products.txt', index=False, header=False)
+np.savetxt('/workspace/datasets/fasttext/pruned_labeled_products.txt', df['text'].values, fmt='%s')
+
+shuf /workspace/datasets/fasttext/pruned_labeled_products.txt --random-source=<(seq 99999) > /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt
+
+head -10000 /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_training_data.txt
+tail -10000 /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_test_data.txt
+
+~/fastText-0.9.2/fasttext supervised -input /workspace/datasets/fasttext/pruned_training_data.txt -output model_bbuy_pruned -epoch 5 -lr 1.0 -wordNgrams 2
+
+~/fastText-0.9.2/fasttext test model_bbuy_pruned.bin /workspace/datasets/fasttext/pruned_test_data.txt
+~/fastText-0.9.2/fasttext test model_bbuy_pruned.bin /workspace/datasets/fasttext/pruned_test_data.txt 5
+
+
+Synonyms:
+
+cut -d' ' -f2- /workspace/datasets/fasttext/shuffled_labeled_products.txt > /workspace/datasets/fasttext/titles.txt
+
+~/fastText-0.9.2/fasttext skipgram -input /workspace/datasets/fasttext/titles.txt -output /workspace/datasets/fasttext/title_model
+
+~/fastText-0.9.2/fasttext nn /workspace/datasets/fasttext/title_model.bin
+
+iphone
+iPhone
+
+cat /workspace/datasets/fasttext/titles.txt | sed -e "s/\([.\!?,'/()]\)/ \1 /g" | tr "[:upper:]" "[:lower:]" | sed "s/[^[:alnum:]]/ /g" | tr -s ' ' > /workspace/datasets/fasttext/normalized_titles.txt
+
+~/fastText-0.9.2/fasttext skipgram -input /workspace/datasets/fasttext/normalized_titles.txt -output /workspace/datasets/fasttext/normalized_title_model
 
