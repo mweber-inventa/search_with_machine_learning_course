@@ -67,3 +67,314 @@ cat /workspace/datasets/fasttext/titles.txt | sed -e "s/\([.\!?,'/()]\)/ \1 /g" 
 
 ~/fastText-0.9.2/fasttext skipgram -input /workspace/datasets/fasttext/normalized_titles.txt -output /workspace/datasets/fasttext/normalized_title_model
 
+~/fastText-0.9.2/fasttext nn /workspace/datasets/fasttext/normalized_title_model.bin
+
+Query word? iphone
+4s 0.877349
+3gs 0.784368
+apple 0.78273
+ipadÂ 0.726072
+ipod 0.725408
+ipodÂ 0.725036
+ozone 0.721389
+ifrogz 0.706866
+appleÂ 0.704638
+gophone 0.700519
+
+Query word? headphones
+headphone 0.930572
+earbud 0.907323
+ear 0.864921
+earphones 0.833632
+earbuds 0.747581
+bud 0.747067
+2xl 0.736915
+ears 0.725808
+microphones 0.717293
+behind 0.714623
+
+Query word? laptop
+laptops 0.73142
+laps 0.721943
+156b 0.701626
+172 0.684952
+17r 0.679572
+lapdesk 0.679443
+l305d 0.679266
+177 0.6776
+i15 0.67453
+174 0.674169
+
+Query word? freezer
+freezers 0.918728
+refrigerator 0.830703
+refrigerators 0.812031
+frost 0.785088
+cu 0.741776
+mug 0.723971
+cleansteel 0.723354
+bottom 0.716339
+customstyle 0.715615
+ft 0.714634
+
+Query word? nintendo
+nintendogs 0.975457
+ds 0.912486
+wii 0.867591
+3ds 0.851463
+gamecube 0.794791
+rabbids 0.773405
+luigi 0.737957
+psp 0.731446
+ninjas 0.724985
+juju 0.722495
+
+Query word? whirlpool
+whirl 0.872703
+maytag 0.844399
+biscuit 0.8438
+frigidaire 0.820076
+bisque 0.813222
+hotpoint 0.773684
+nautilus 0.766483
+cleansteel 0.756655
+gallery 0.752428
+bahama 0.745765
+
+Query word? kodak
+easyshare 0.885406
+m763 0.782654
+m863 0.782564
+m893 0.777828
+c813 0.760808
+m341 0.755831
+m1063 0.747405
+m381 0.742899
+m340 0.734245
+m590 0.726614
+
+Query word? ps2
+ps3 0.885107
+2k5 0.805094
+2k3 0.799729
+gba 0.798568
+xbox 0.795109
+gamecube 0.793649
+nhl 0.792611
+2k6 0.785096
+psp 0.784497
+Â 0.777569
+
+Query word? razr
+krzr 0.898853
+a855 0.88639
+i90c 0.876065
+e71 0.869155
+r225 0.859226
+i95cl 0.857157
+i60c 0.854027
+i50sx 0.852975
+i55sr 0.852104
+a957 0.850748
+
+Query word? stratocaster
+telecaster 0.931561
+starcaster 0.887314
+strat 0.839508
+squier 0.812482
+forecaster 0.809221
+hss 0.79786
+synyster 0.788779
+sunburst 0.767847
+fender 0.765673
+tobacco 0.752571
+
+Query word? holiday
+holidays 0.977115
+kwanzaa 0.849825
+día 0.831197
+congrats 0.827828
+hanukkah 0.827545
+cumpleaños 0.819302
+dreidel 0.818313
+vibes 0.817142
+slaphappy 0.816786
+gracias 0.814478
+
+Query word? plasma
+600hz 0.853287
+480hz 0.810744
+hdtvs 0.80651
+73 0.805551
+58 0.802882
+hdtv 0.798899
+63 0.798731
+480p 0.791458
+regza 0.79002
+1080p 0.788812
+
+Query word? leather
+leatherskin 0.905562
+recliner 0.703901
+hipcase 0.669292
+berkline 0.659077
+magnolia 0.656646
+sofa 0.645906
+weather 0.645607
+slipcase 0.643045
+seating 0.640209
+theaterseatstore 0.639011
+
+~/fastText-0.9.2/fasttext skipgram -input /workspace/datasets/fasttext/normalized_titles.txt -output /workspace/datasets/fasttext/normalized_title_model -epoch 25 -minCount 20
+
+Query word? iphone
+4s 0.847791
+apple 0.799649
+3gs 0.726853
+ipod 0.726501
+ipad 0.66289
+4th 0.624418
+3g 0.575764
+macbeth 0.559864
+mophie 0.545932
+shell 0.537875
+
+Query word? headphones
+earbud 0.901563
+headphone 0.85148
+ear 0.840704
+earphones 0.668138
+lowrider 0.666622
+over 0.642588
+2xl 0.64186
+bud 0.638436
+able 0.616744
+hesh 0.61013
+
+Query word? laptop
+notebook 0.684921
+netbook 0.653343
+laptops 0.569377
+notebooks 0.54738
+ultrabook 0.547074
+biscotti 0.542898
+netbooks 0.535952
+processor 0.52916
+
+Query word? freezer
+refrigerator 0.757038
+satina 0.63644
+refrigerators 0.626105
+side 0.625137
+cu 0.619136
+bottom 0.600496
+mug 0.593551
+ft 0.591953
+cleansteel 0.581698
+customstyle 0.571959
+Query word? nintendo
+ds 0.956032
+wii 0.932932
+3ds 0.801745
+gamecube 0.778806
+psp 0.761436
+playstation 0.72158
+advance 0.71042
+xbox 0.702689
+boy 0.699635
+360 0.691394
+Query word? whirlpool
+maytag 0.783483
+biscuit 0.767165
+ge 0.719776
+frigidaire 0.719305
+inglis 0.712415
+bisque 0.658907
+satina 0.640396
+cleansteel 0.638551
+cu 0.638309
+architect 0.636265
+Query word? kodak
+easyshare 0.828435
+playsport 0.676899
+m863 0.671877
+m893 0.643001
+m1063 0.640678
+m340 0.634569
+playtouch 0.625354
+esp 0.582165
+photosmart 0.553948
+photo 0.539487
+
+Query word? ps2
+guide 0.74148
+gamecube 0.736757
+ps3 0.731612
+xbox 0.718439
+playstation 0.714675
+360 0.708309
+gba 0.707144
+psp 0.695188
+game 0.643566
+nintendo 0.626328
+
+Query word? razr
+motorola 0.776365
+droid 0.748791
+nokia 0.685502
+atrix 0.646572
+phones 0.629199
+treo 0.622229
+scuba 0.621186
+cell 0.60292
+cellsuit 0.602753
+sph 0.601657
+
+Query word? stratocaster
+telecaster 0.869646
+fender 0.792965
+strat 0.771917
+fretboard 0.760988
+squier 0.724551
+jazz 0.598489
+rosewood 0.598098
+guitar 0.597959
+sunburst 0.576043
+tele 0.569844
+
+Query word? holiday
+hanukkah 0.614573
+kwanzaa 0.59825
+congratulations 0.583733
+happy 0.573242
+gift 0.568935
+graduation 0.567863
+thank 0.563571
+merry 0.548566
+buy 0.539649
+connection 0.532045
+
+Query word? plasma
+600hz 0.736379
+hdtv 0.677131
+viera 0.613079
+63 0.584364
+58 0.568675
+42 0.56556
+tv 0.564708
+dlp 0.564342
+46 0.561869
+hdtvs 0.55767
+
+Query word? leather
+recliner 0.69007
+armless 0.66591
+sofa 0.634216
+berkline 0.628115
+seating 0.604211
+case 0.598969
+curved 0.564811
+magnolia 0.552401
+theaterseatstore 0.548526
+jivo 0.547483
+
