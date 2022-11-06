@@ -8,6 +8,14 @@
             "smarter_hyphens_filter",
             "lowercase"
           ]
+        },
+        "synonym_analyzer": {
+          "tokenizer": "smarter_hyphens_tokenizer",
+          "filter": [
+            "lowercase",
+            "synonym",
+            "stemmer"
+          ]
         }
       },
       "tokenizer": {
@@ -252,6 +260,10 @@
           },
           "suggest": {
             "type": "completion"
+          },
+          "synonyms": {
+            "type": "text",
+            "analyzer": "synonym_analyzer"
           }
 
         }
