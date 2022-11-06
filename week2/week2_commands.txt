@@ -38,15 +38,19 @@ def expand_labels_and_text(df, col='text'):
 df[['label', 'description']] = df.apply(expand_labels_and_text, axis=1, result_type='expand')
 df['item_count'] = df.groupby('label').transform('count')['description']
 
-df_output = df[df['item_count']>=item_count_threshold]['text']
-np.savetxt('/workspace/datasets/fasttext/pruned_labeled_products.txt', df['text'].values, fmt='%s')
+df['text_labels_removed'] = df['text'].str.replace('__label__\S+', '', regex=True)
+
+df['text_output'] = df['label'] + ' ' + df['text_labels_removed']
+
+df_output = df[df['item_count']>=item_count_threshold]['text_output']
+np.savetxt('/workspace/datasets/fasttext/pruned_labeled_products.txt', df['text_output'].values, fmt='%s')
 
 shuf /workspace/datasets/fasttext/pruned_labeled_products.txt --random-source=<(seq 99999) > /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt
+cat /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt |sed -e "s/\([.\!?,'/()]\)/ \1 /g" | tr "[:upper:]" "[:lower:]" | sed "s/[^[:alnum:]_]/ /g" | tr -s ' ' > /workspace/datasets/fasttext/normalized__pruned_labeled_products.txt
+head -10000 /workspace/datasets/fasttext/normalized__pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_training_data.txt
+tail -10000 /workspace/datasets/fasttext/normalized__pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_test_data.txt
 
-head -10000 /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_training_data.txt
-tail -10000 /workspace/datasets/fasttext/shuffled_pruned_labeled_products.txt > /workspace/datasets/fasttext/pruned_test_data.txt
-
-~/fastText-0.9.2/fasttext supervised -input /workspace/datasets/fasttext/pruned_training_data.txt -output model_bbuy_pruned -epoch 5 -lr 1.0 -wordNgrams 2
+~/fastText-0.9.2/fasttext supervised -input /workspace/datasets/fasttext/pruned_training_data.txt -output model_bbuy_pruned -epoch 25 -lr 1.0 -wordNgrams 2
 
 ~/fastText-0.9.2/fasttext test model_bbuy_pruned.bin /workspace/datasets/fasttext/pruned_test_data.txt
 ~/fastText-0.9.2/fasttext test model_bbuy_pruned.bin /workspace/datasets/fasttext/pruned_test_data.txt 5
