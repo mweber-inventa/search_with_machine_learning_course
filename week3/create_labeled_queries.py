@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import numpy as np
 import csv
+import re
 
 # Useful if you want to perform stemming.
 import nltk
@@ -49,8 +50,13 @@ queries_df = pd.read_csv(queries_file_name)[['category', 'query']]
 queries_df = queries_df[queries_df['category'].isin(categories)]
 
 # IMPLEMENT ME: Convert queries to lowercase, and optionally implement other normalization, like stemming.
+def normalize_query(query):
+    return stemmer.stem(re.sub(r'\W+', ' ', query).lower().strip())
+
+queries_df['normalized_query'] = queries_df['query'].apply(normalize_query)
 
 # IMPLEMENT ME: Roll up categories to ancestors to satisfy the minimum number of queries per category.
+
 
 # Create labels in fastText format.
 queries_df['label'] = '__label__' + queries_df['category']
