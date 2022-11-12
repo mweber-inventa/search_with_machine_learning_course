@@ -12,6 +12,7 @@ import pandas as pd
 import fileinput
 import logging
 import sys
+import fasttext
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def create_prior_queries(doc_ids, doc_id_weights,
 
 
 # Hardcoded query here.  Better to use search templates or other query config.
-def create_query(user_query, click_prior_query, filters, sort="_score", sortDir="desc", size=10, source=None, use_synonym=False):
+def create_query(user_query, click_prior_query, filters, sort="_score", sortDir="desc", size=10, source=None, use_synonym=False, use_classification_boost=False, query_categories=None):
     
     if use_synonym:
         name = "name.synonyms"
@@ -174,6 +175,7 @@ def create_query(user_query, click_prior_query, filters, sort="_score", sortDir=
             }
         }
     }
+
     if click_prior_query is not None and click_prior_query != "":
         query_obj["query"]["function_score"]["query"]["bool"]["should"].append({
             "query_string": {
@@ -182,6 +184,26 @@ def create_query(user_query, click_prior_query, filters, sort="_score", sortDir=
                 "fields": ["_id"]
             }
         })
+
+    if use_classification_boost:
+        query_obj["query"]["function_score"]["query"]["bool"]["should"].append(
+            {  
+                
+                "terms": { 
+                    "categoryPathIds": query_categories,
+                    "boost": 10
+                }
+                
+                # "query_string": {
+                #     "query": query_classification,
+                #     "fields": ["categoryPathIds"],
+                #     "boost": 10
+                # }
+
+            }
+        )
+        
+        
     if user_query == "*" or user_query == "#":
         # replace the bool
         try:
@@ -194,10 +216,48 @@ def create_query(user_query, click_prior_query, filters, sort="_score", sortDir=
 
 
 def search(client, user_query, index="bbuy_products", sort="_score", sortDir="desc", use_synonym=False):
+    
     #### W3: classify the query
     #### W3: create filters and boosts
     # Note: you may also want to modify the `create_query` method above
-    query_obj = create_query(user_query, click_prior_query=None, filters=None, sort=sort, sortDir=sortDir, source=["name", "shortDescription"], use_synonym=use_synonym)
+
+    model = fasttext.load_model("queries_model.bin")
+    classification_result = model.predict(user_query, k=5)
+    
+    query_categories = []
+    classification_threshold = 0.5
+    total_score = 0
+
+    for label, score in zip(classification_result[0], classification_result[1]):
+        
+        query_categories.append(label[9:])
+        total_score = total_score + score
+
+        if total_score >= classification_threshold:
+            break
+
+    filters = []
+    filters.append(
+        {
+            "terms":{ "categoryPathIds": query_categories}
+        }
+    )
+
+    print(' '.join(query_categories) + f' total_score={str(total_score)}')
+
+    query_obj = create_query(user_query, 
+                             click_prior_query=None,
+                             filters=filters, 
+                             sort=sort, 
+                             sortDir=sortDir, 
+                             source=["name", "shortDescription"], 
+                             use_synonym=use_synonym, 
+                             use_classification_boost = True,
+                             query_categories = query_categories)
+    
+    
+    print(json.dumps(query_obj, indent=2))
+
     logging.info(query_obj)
     response = client.search(query_obj, index=index)
     if response and response['hits']['hits'] and len(response['hits']['hits']) > 0:
