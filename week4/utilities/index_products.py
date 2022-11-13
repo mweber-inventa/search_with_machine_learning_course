@@ -143,16 +143,27 @@ def index_file(file, index_name, reduced=False):
             continue
         if reduced and ('categoryPath' not in doc or 'Best Buy' not in doc['categoryPath'] or 'Movies & Music' in doc['categoryPath']):
             continue
+        name.append(doc['name'])
         docs.append({'_index': index_name, '_id':doc['sku'][0], '_source' : doc})
         #docs.append({'_index': index_name, '_source': doc})
         docs_indexed += 1
         if docs_indexed % 200 == 0:
+            
+            logger.info("Encoding")
+            embeddings = model.encode(name)
+            for doc, embedding in zip(docs, embeddings):
+                doc['emdedding'] = embedding
+            
             logger.info("Indexing")
             bulk(client, docs, request_timeout=60)
             logger.info(f'{docs_indexed} documents indexed')
             docs = []
             names = []
     if len(docs) > 0:
+        embeddings = model.encode(name)
+        for doc, embedding in zip(docs, embeddings):
+            doc['emdedding'] = embedding
+            
         bulk(client, docs, request_timeout=60)
         logger.info(f'{docs_indexed} documents indexed')
     return docs_indexed
