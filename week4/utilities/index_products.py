@@ -25,7 +25,6 @@ logging.basicConfig(format='%(levelname)s:%(message)s')
 # IMPLEMENT ME: import the sentence transformers module!
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
 # print(model)
 
@@ -114,6 +113,7 @@ def get_opensearch():
 def index_file(file, index_name, reduced=False):
     logger.info("Creating Model")
     # IMPLEMENT ME: instantiate the sentence transformer model!
+    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
     
     logger.info("Ready to index")
 
@@ -153,7 +153,8 @@ def index_file(file, index_name, reduced=False):
             embeddings = model.encode(name)
             for doc, embedding in zip(docs, embeddings):
                 doc['emdedding'] = embedding
-            
+                print(doc)
+
             logger.info("Indexing")
             bulk(client, docs, request_timeout=60)
             logger.info(f'{docs_indexed} documents indexed')
