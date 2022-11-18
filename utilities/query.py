@@ -13,11 +13,14 @@ import fileinput
 import logging
 import sys
 import fasttext
-
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(levelname)s:%(message)s')
+
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
 
 # expects clicks and impressions to be in the row
 def create_prior_queries_from_group(
@@ -215,54 +218,84 @@ def create_query(user_query, click_prior_query, filters, sort="_score", sortDir=
     return query_obj
 
 
-def search(client, user_query, index="bbuy_products", sort="_score", sortDir="desc", use_synonym=False):
+def create_vector_query(user_query, size=10):
+
+    query_list = []
+    query_list.append(user_query)
+    query_vectors = model.encode(query_list)
+    query_vector = query_vectors.tolist()[0]
+
+    query_obj = {
+        "size": size,
+        "_source": ["name", "shortDescription"],
+        "query": {
+            "knn": {
+                "embedding": {
+                    "vector": query_vector,
+                    "k": size
+                }
+            }
+        }
+    }
+
+    return query_obj
+
+
+def search(client, user_query, index="bbuy_products", sort="_score", sortDir="desc", use_synonym=False, use_vector_search=False):
     
     #### W3: classify the query
     #### W3: create filters and boosts
     # Note: you may also want to modify the `create_query` method above
 
-    model = fasttext.load_model("queries_model.bin")
-    classification_result = model.predict(user_query, k=5)
-    
-    query_categories = []
-    classification_threshold = 0.5
-    total_score = 0
+    if use_vector_search:
 
-    for label, score in zip(classification_result[0], classification_result[1]):
+        query_obj = create_vector_query(user_query, size=10)
         
-        query_categories.append(label[9:])
-        total_score = total_score + score
+    else:
 
-        if total_score >= classification_threshold:
-            break
+        model = fasttext.load_model("queries_model.bin")
+        classification_result = model.predict(user_query, k=5)
+        
+        query_categories = []
+        classification_threshold = 0.5
+        total_score = 0
 
-    filters = []
-    filters.append(
-        {
-            "terms":{ "categoryPathIds": query_categories}
-        }
-    )
+        for label, score in zip(classification_result[0], classification_result[1]):
+            
+            query_categories.append(label[9:])
+            total_score = total_score + score
 
-    print(' '.join(query_categories) + f' total_score={str(total_score)}')
+            if total_score >= classification_threshold:
+                break
 
-    query_obj = create_query(user_query, 
-                             click_prior_query=None,
-                             filters=filters, 
-                             sort=sort, 
-                             sortDir=sortDir, 
-                             source=["name", "shortDescription"], 
-                             use_synonym=use_synonym, 
-                             use_classification_boost = True,
-                             query_categories = query_categories)
-    
-    
+        filters = []
+        filters.append(
+            {
+                "terms":{ "categoryPathIds": query_categories}
+            }
+        )
+
+        print(' '.join(query_categories) + f' total_score={str(total_score)}')
+
+        query_obj = create_query(user_query, 
+                                click_prior_query=None,
+                                filters=filters, 
+                                sort=sort, 
+                                sortDir=sortDir, 
+                                source=["name", "shortDescription"], 
+                                use_synonym=use_synonym, 
+                                use_classification_boost = True,
+                                query_categories = query_categories)
+        
+        
     print(json.dumps(query_obj, indent=2))
 
     logging.info(query_obj)
     response = client.search(query_obj, index=index)
     if response and response['hits']['hits'] and len(response['hits']['hits']) > 0:
         hits = response['hits']['hits']
-        print(json.dumps(response, indent=2))
+        print(json.dumps(hits, indent=2))
+
 
 
 if __name__ == "__main__":
@@ -281,6 +314,8 @@ if __name__ == "__main__":
                          help='The OpenSearch admin.  If this is set, the program will prompt for password too. If not set, use default of admin/admin')
     general.add_argument('--synonyms', action='store_true',
                          help='Search into name.synonyms instead of name')
+    general.add_argument('--vector', action='store_true', default=False, 
+                         help='Use vector search insted of inverted index')
 
     args = parser.parse_args()
 
@@ -289,6 +324,8 @@ if __name__ == "__main__":
     if len(vars(args)) == 0:
         parser.print_usage()
         exit()
+
+    use_vector_search = args.vector
 
     host = args.host
     port = args.port
@@ -318,7 +355,7 @@ if __name__ == "__main__":
         if query == "Exit":
             break
 
-        search(client=opensearch, user_query=query, index=index_name, use_synonym=args.synonyms)
+        search(client=opensearch, user_query=query, index=index_name, use_synonym=args.synonyms, use_vector_search=use_vector_search)
 
         print(query_prompt)
     
